@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+
+  "name": "notes",
+  "description": "Creating the notes with popup element",
+  "version": "1.0",
+  "background": {
+    "scripts": ["fp.js"]
+  },
+
+  "permissions": [
+    "https://mytods.com/"
+  ],
+  "browser_action": {
+    "default_icon": "notepad.png",
+    "default_popup": "popup.html"
+  }
+}
