@@ -1,13 +1,16 @@
 
 document.onmouseup = function(e){
-	cx = e.clientX 
-	cy = e.clientY
+	var fp = document.getElementById('notes_float_panel')
+	if(fp)
+	  document.body.removeChild(fp)
+	cx = e.clientX;
+	cy = e.clientY;
 	selection = window.getSelection();
-	data = selection.anchorNode.data
-	if(data == undefined)
+	data = encodeURIComponent(selection);
+	if(data == "")
 		return;
 	popup.invoke(cx+50, cy+50);
-	popup.getSel(data);
+	popup.getSel(selection);
 }
 
 var popup = {
@@ -20,7 +23,7 @@ var popup = {
 		fp.style = 'position:absolute;'+
 				   'left:' +x+
 				   'rigth:'+y;
-		fp.addEventListener("click", popup.sendData)
+		// fp.addEventListener("click", popup.sendData);
 		document.body.appendChild(fp);
 	},
 
