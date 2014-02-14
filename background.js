@@ -1,4 +1,5 @@
-// chrome.runtime.onMessa ge.addListener(function(request, sender, sendResponse){
-// 	if (request.img == 'fpImg')
-// 		sendResponse('trololo')
-// });
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+	chrome.notifications.create("", request, function(Id){
+		setTimeout(chrome.notifications.clear, 3000, Id, function(cleared){});
+	});
+});

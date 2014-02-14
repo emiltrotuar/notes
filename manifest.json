@@ -4,13 +4,15 @@
   "name": "notes",
   "description": "Creating the notes with popup element",
   "version": "1.0",
+  "permissions": [
+    "notifications"
+  ],
   "background": {
     "scripts": ["background.js"]
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*","file:///*.html"],
-      "css": ["fp.css"],
+      "matches": ["http://*/*","https://*/*","file:///*.html"],
       "js": ["fp.js"]
     }
   ],
@@ -18,6 +20,6 @@
     "default_icon": "notepad.png",
     "default_popup": "popup.html"
   },
-  "web_accessible_resources": ["edit.png"],
+  "web_accessible_resources": ["edit.png","fp.css"],
   "options_page": "options.html"
 }

@@ -1,29 +1,39 @@
+var link = document.createElement('link');
+link.href =  chrome.extension.getURL('fp.css');
+link.rel = 'stylesheet';
+document.documentElement.insertBefore(link);
+
 document.onmouseup = function(e){
   var fp = document.getElementById('notes_float_panel');
   var selection = window.getSelection().toString();
   if( check(selection,fp) ){
     var cx = e.clientX;
     var cy = e.clientY;
-    popup.invoke(cx+50, cy+50);
+    var st = document.body.scrollTop
+    popup.invoke(cx-50, cy-30+st);
     popup.getSel(selection);
   } 
 }
 
+function remove_panel(fp){
+  fp.removeEventListener("mousedown", popup.sendData);
+  document.body.removeChild(fp);
+}
+
 function check(selection,fp){
   if(selection.length && fp){
-    fp.removeEventListener("mousedown", popup.sendData);
-    document.body.removeChild(fp);
-    popup.exists = false;
+    if(selection != popup.data){
+      remove_panel(fp);
+      return true;
+    }
+    remove_panel(fp);
     return;
   }
-  else if(selection.length && !fp && popup.exists){
-    popup.exists = false
-    return;
+  else if(selection.length && !fp){
+    return true;
   }
   else if(!selection.length && fp){
-    fp.removeEventListener("mousedown", popup.sendData);
-    document.body.removeChild(fp);
-    popup.exists = false;
+    remove_panel(fp);
     return;
   }
   else if(!selection.length && !fp){
@@ -34,19 +44,17 @@ function check(selection,fp){
 }
 
 var popup = {
-  exists: false,
   data: "",
 
   invoke: function(x,y){
     var fp = document.createElement('img');
     fp.id = 'notes_float_panel';
     fp.src = chrome.extension.getURL("edit.png");
-    fp.style = 'position:absolute;'+
-               'left:' +x+
-               'rigth:'+y;
+    fp.style.cssText = 'position:absolute;\
+                        left:'+x+'px;\
+                        top:' +y+'px;'
     fp.addEventListener("mousedown", popup.sendData);
     document.body.appendChild(fp);
-    popup.exists = true;
   },
 
   getSel: function(data){
@@ -56,8 +64,7 @@ var popup = {
   sendData: function(ev){
     ev.stopPropagation();
     var fp = document.getElementById('notes_float_panel');
-    fp.removeEventListener("mousedown", popup.sendData);
-    document.body.removeChild(fp);
+    remove_panel(fp);
 
     var data = JSON.stringify({note: {content: popup.data}})
     var xhr = new XMLHttpRequest();
@@ -72,7 +79,7 @@ var popup = {
           message: resp.content,
           iconUrl: chrome.extension.getURL("edit.png")
         }
-        chrome.notifications.create("", options, function(noteId){});
+        chrome.runtime.sendMessage(options);
       }
     }
     xhr.send(data);
