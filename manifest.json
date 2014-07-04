@@ -5,7 +5,8 @@
   "description": "Creating the notes with popup element",
   "version": "1.0",
   "permissions": [
-    "notifications"
+    "notifications",
+    "storage"
   ],
   "background": {
     "scripts": ["background.js"]

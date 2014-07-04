@@ -1,3 +1,7 @@
+var tlHost;
+chrome.storage.local.get('host', function(item) {
+  tlHost = item.host;
+});
 var link = document.createElement('link');
 link.href =  chrome.extension.getURL('fp.css');
 link.rel = 'stylesheet';
@@ -6,7 +10,7 @@ document.documentElement.insertBefore(link);
 document.onmouseup = function(e){
   var fp = document.getElementById('notes_float_panel');
   var selection = window.getSelection().toString();
-  if( check(selection,fp) ){
+  if ( check(selection,fp) ){
     var cx = e.clientX;
     var cy = e.clientY;
     var st = document.body.scrollTop
@@ -21,22 +25,22 @@ function remove_panel(fp){
 }
 
 function check(selection,fp){
-  if(selection.length && fp){
-    if(selection != popup.data){
+  if (selection.length && fp){
+    if (selection != popup.data){
       remove_panel(fp);
       return true;
     }
     remove_panel(fp);
     return;
   }
-  else if(selection.length && !fp){
+  else if (selection.length && !fp){
     return true;
   }
-  else if(!selection.length && fp){
+  else if (!selection.length && fp){
     remove_panel(fp);
     return;
   }
-  else if(!selection.length && !fp){
+  else if (!selection.length && !fp){
     return;
   }
   else 
@@ -62,21 +66,22 @@ var popup = {
   },
 
   sendData: function(ev){
+    if (!tlHost.length) { alert('set host'); return }
     ev.stopPropagation();
     var fp = document.getElementById('notes_float_panel');
     remove_panel(fp);
-
     var data = JSON.stringify({note: {content: popup.data}})
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://localhost:3000/notes.json", true);
+    xhr.open("POST", tlHost+"notes.json", true);
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         var resp = JSON.parse(xhr.responseText);
+        var date = (new Date).toString()
         var options = {
           type:    "basic",
-          title:   resp.created_at,
-          message: resp.content,
+          title:   date,
+          message: resp.note.content,
           iconUrl: chrome.extension.getURL("edit.png")
         }
         chrome.runtime.sendMessage(options);
