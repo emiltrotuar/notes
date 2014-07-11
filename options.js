@@ -1,7 +1,11 @@
 function save_options() {
   var host = document.getElementById('host').value;
+  var email = document.getElementById('email').value;
+  var password = document.getElementById('password').value;
   chrome.storage.local.set({
     host: host,
+    email: email,
+    password: password
   }, function() {
     var status = document.getElementById('status');
     status.textContent = 'Options saved.';

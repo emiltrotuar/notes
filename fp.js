@@ -1,7 +1,30 @@
-var tlHost;
-chrome.storage.local.get('host', function(item) {
-  tlHost = item.host;
+this.tlHost = undefined;
+
+function signIn(payload,host){
+  var data = JSON.stringify(payload)
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", host+"/users/sign_in.json", true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('TL-Client', 'extension');
+  xhr.send(data);
+}
+
+chrome.storage.local.get(['host','email','password'], function(items) {
+  host = tlHost = items.host;
+  email = items.email;
+  password = items.password;
+
+  tlOptions = !!(host.length && email.length && password.length)
+  if (!tlOptions){ alert('set options'); return }
+  payload = {
+    user: {
+      email: email,
+      password: password
+    }
+  }
+  signIn(payload,host)
 });
+
 var link = document.createElement('link');
 link.href =  chrome.extension.getURL('fp.css');
 link.rel = 'stylesheet';
@@ -66,13 +89,13 @@ var popup = {
   },
 
   sendData: function(ev){
-    if (!tlHost.length) { alert('set host'); return }
     ev.stopPropagation();
+    if (!tlHost) { alert('set options'); return }
     var fp = document.getElementById('notes_float_panel');
     remove_panel(fp);
     var data = JSON.stringify({note: {content: popup.data}})
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", tlHost+"notes.json", true);
+    xhr.open("POST", tlHost+"/notes.json", true);
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
