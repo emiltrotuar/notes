@@ -1,29 +1,52 @@
 this.tlHost = undefined;
+this.tlToken = undefined;
+this.tlPayload = undefined;
 
-function signIn(payload,host){
-  var data = JSON.stringify(payload)
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", host+"/users/sign_in.json", true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('TL-Client', 'extension');
-  xhr.send(data);
+chrome.storage.local.get(['token','host'], function(items) {
+  tlToken = items.token || getToken();
+  tlHost = items.host
+});
+
+function getToken(){
+  getCredentials()
+  signIn();
 }
 
-chrome.storage.local.get(['host','email','password'], function(items) {
-  host = tlHost = items.host;
-  email = items.email;
-  password = items.password;
+function getCredentials(){
+  chrome.storage.local.get(['host','email','password'], function(items) {
+    tlHost = items.host;
+    email = items.email;
+    password = items.password;
 
-  tlOptions = !!(host.length && email.length && password.length)
-  if (!tlOptions){ alert('set options'); return }
-  payload = {
-    user: {
-      email: email,
-      password: password
+    tlOptions = !!(tlHost.length && email.length && password.length)
+    if (!tlOptions){ alert('set options'); return}
+
+    tlPayload = {
+      user: {
+        email: email,
+        password: password
+      }
+    }
+  });
+}
+
+function signIn(){
+  var data = JSON.stringify(tlPayload)
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", tlHost+"/users/sign_in.json", true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('X-TL-Client', 'extension');
+  xhr.send(data);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+      tlToken = xhr.getResponseHeader('X-TL-Token')
+      if (tlToken) {
+        chrome.storage.local.set({ token: tlToken })
+        console.log('signed in');
+      }
     }
   }
-  signIn(payload,host)
-});
+}
 
 var link = document.createElement('link');
 link.href =  chrome.extension.getURL('fp.css');
@@ -90,13 +113,14 @@ var popup = {
 
   sendData: function(ev){
     ev.stopPropagation();
-    if (!tlHost) { alert('set options'); return }
+    if (!tlToken) { alert('set options'); return }
     var fp = document.getElementById('notes_float_panel');
     remove_panel(fp);
     var data = JSON.stringify({note: {content: popup.data}})
     var xhr = new XMLHttpRequest();
     xhr.open("POST", tlHost+"/notes.json", true);
     xhr.setRequestHeader('Content-Type', 'application/json')
+    xhr.setRequestHeader('X-TL-Token', tlToken)
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         var resp = JSON.parse(xhr.responseText);
@@ -107,9 +131,8 @@ var popup = {
           message: resp.note.content,
           iconUrl: chrome.extension.getURL("edit.png")
         }
-        chrome.runtime.sendMessage(options);
       }
     }
     xhr.send(data);
-  }   
+  }
 }

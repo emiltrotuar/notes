@@ -6,7 +6,10 @@
   "version": "1.0",
   "permissions": [
     "notifications",
-    "storage"
+    "storage",
+    "cookies",
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "scripts": ["background.js"]
