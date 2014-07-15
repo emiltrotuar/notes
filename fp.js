@@ -12,6 +12,13 @@ function getToken(){
   signIn();
 }
 
+function storeToken(xhr){
+  tlToken = xhr.getResponseHeader('X-TL-Token')
+  if (tlToken) {
+    chrome.storage.local.set({ token: tlToken })
+  }
+}
+
 function getCredentials(){
   chrome.storage.local.get(['host','email','password'], function(items) {
     tlHost = items.host;
@@ -39,11 +46,7 @@ function signIn(){
   xhr.send(data);
   xhr.onreadystatechange = function() {
     if (xhr.readyState == 4) {
-      tlToken = xhr.getResponseHeader('X-TL-Token')
-      if (tlToken) {
-        chrome.storage.local.set({ token: tlToken })
-        console.log('signed in');
-      }
+      storeToken(xhr)
     }
   }
 }
@@ -124,6 +127,7 @@ var popup = {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         var resp = JSON.parse(xhr.responseText);
+        storeToken(xhr)
         var date = (new Date).toString()
         var options = {
           type:    "basic",
@@ -131,6 +135,7 @@ var popup = {
           message: resp.note.content,
           iconUrl: chrome.extension.getURL("edit.png")
         }
+        chrome.runtime.sendMessage(options);
       }
     }
     xhr.send(data);
